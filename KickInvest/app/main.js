@@ -10,6 +10,7 @@ function createWindow() {
       // preload: path.join(__dirname, 'preload.js')
       nodeIntegration: true,
     },
+    title: "KickInvest",
     backgroundColor: "#E3E5E8",
     minHeight: 600,
     minWidth: 800,
@@ -25,7 +26,7 @@ function createWindow() {
   });
 
   //DEBUG: show dev tools
-  win.openDevTools();
+  //win.openDevTools();
 
   // Load dev server where our react app is served. This should
   // be replaced once we build our app for production

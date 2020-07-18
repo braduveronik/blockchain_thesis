@@ -1,21 +1,21 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import {Tab, Row, Col, Nav, Form, Button, Tabs, NavLink} from "react-bootstrap";
+import { Tab, Row, Col, Nav, Form, Button, Tabs } from "react-bootstrap";
 import KickInvest, { KickInvestUtil } from "../scripts/KickInvest";
 
 
 function NewTransaction(props) {
 
-    const [ showNewTransaction, setShowNewTransaction ] = useState(false);
+    const [showNewTransaction, setShowNewTransaction] = useState(false);
 
-    const [ recipientAddress, setRecipientAddress ] = useState('');
-    const [ transferReason, setTransferReason ] = useState('');
-    const [ transferValue, setTransferValue ] = useState('');
+    const [recipientAddress, setRecipientAddress] = useState('');
+    const [transferReason, setTransferReason] = useState('');
+    const [transferValue, setTransferValue] = useState('');
 
-    const [ transactionError, setTransactionError ] = useState(null);
-    const [ transactionStatus, setTransactionStatus ] = useState("normal");
-    const [ transactionAddressError, setTransactionAddressError ] = useState(false);
-    const [ transactionValueError, setTransactionValueError ] = useState(false);
+    const [transactionError, setTransactionError] = useState(null);
+    const [transactionStatus, setTransactionStatus] = useState("normal");
+    const [transactionAddressError, setTransactionAddressError] = useState(false);
+    const [transactionValueError, setTransactionValueError] = useState(false);
 
     const OnTransactionButton = () => {
         setShowNewTransaction(!showNewTransaction);
@@ -40,28 +40,28 @@ function NewTransaction(props) {
 
     const sendNewTransaction = (e) => {
         setTransactionStatus("loading");
-        if(!KickInvestUtil.isAddress(recipientAddress)) {
+        if (!KickInvestUtil.isAddress(recipientAddress)) {
             setTransactionStatus("normal");
             setTransactionAddressError(true);
             return;
         }
 
-        if(transferValue == '' || parseInt(transferValue) <= 0) {
+        if (transferValue === '' || parseInt(transferValue) <= 0) {
             setTransactionValueError(true);
             setTransactionStatus("normal");
             return;
         }
 
         KickInvest.getInstance().initTransfer(e.obj, recipientAddress, transferReason, transferValue)
-        .then(() => {
-            setTransactionStatus("done");
-            KickInvest.getInstance().listTransferList(props.Project.obj).then((e) => {
-                props.OnUpdate(e);
+            .then(() => {
+                setTransactionStatus("done");
+                KickInvest.getInstance().listTransferList(props.Project.obj).then((e) => {
+                    props.OnUpdate(e);
+                });
+            })
+            .catch((e) => {
+                setTransactionError("Not enough money!");
             });
-        })
-        .catch((e) => {
-            setTransactionError("Not enough money!");
-        });
     };
 
     const addressOnChange = (e) => {
@@ -73,7 +73,7 @@ function NewTransaction(props) {
         setTransactionError(null);
         setTransactionStatus("normal");
         setTransactionValueError(false)
-        if(e.target.value > 0) {
+        if (e.target.value > 0) {
             setTransferValue(e.target.value);
         }
         else {
@@ -87,39 +87,39 @@ function NewTransaction(props) {
 
     return (
         <>
-            <NewTransactionButton/>
+            <NewTransactionButton />
             <div className={`new-transaction-container ${showNewTransaction ? "show" : "hidden"}`}>
                 <div className='new-transaction'>
                     <Form.Group>
-                        <Form.Control type="text" placeholder="Recipient address" value={recipientAddress} onChange={addressOnChange} required/>
+                        <Form.Control type="text" placeholder="Recipient address" value={recipientAddress} onChange={addressOnChange} required />
                         {transactionAddressError &&
                             <Form.Text className="form-error">Invalid address</Form.Text>
                         }
-                        <Form.Control type="number" min="0" placeholder="Value" value={transferValue} onChange={valueOnChange} required/>
+                        <Form.Control type="number" min="0" placeholder="Value" value={transferValue} onChange={valueOnChange} required />
                         {transactionValueError &&
                             <Form.Text className="form-error">Value must be &gt; 0</Form.Text>
                         }
-                        <Form.Control type="text" placeholder="Reason" value={transferReason} onChange={reasonOnChange} required/>
+                        <Form.Control type="text" placeholder="Reason" value={transferReason} onChange={reasonOnChange} required />
                         <div className="new-transaction-footer">
-                            { (transactionError) ?
+                            {(transactionError) ?
                                 <>
-                                    <span style={{color: "#721c24"}}>Not enough funds</span>
+                                    <span style={{ color: "#721c24" }}>Not enough funds</span>
                                     <Button variant="danger" disabled><span><i className="fas fa-times"></i> Error</span></Button>
                                 </>
-                            :
-                            <>
-                                <Button disabled={!(transactionStatus == "normal")} variant="success" onClick={() => sendNewTransaction(props.Project)}>
-                                    {(transactionStatus == "normal") &&
-                                        <span><i className="fas fa-paper-plane"></i> Send</span>
-                                    }
-                                    {(transactionStatus == "loading") &&
-                                        <span><div className="spinner-border spinner-border-sm" role="status"></div> Loading</span>
-                                    }
-                                    {(transactionStatus == "done") &&
-                                        <span><i className="fas fa-check"></i> Done</span>
-                                    }
-                                </Button>
-                            </>
+                                :
+                                <>
+                                    <Button disabled={!(transactionStatus === "normal")} variant="success" onClick={() => sendNewTransaction(props.Project)}>
+                                        {(transactionStatus === "normal") &&
+                                            <span><i className="fas fa-paper-plane"></i> Send</span>
+                                        }
+                                        {(transactionStatus === "loading") &&
+                                            <span><div className="spinner-border spinner-border-sm" role="status"></div> Loading</span>
+                                        }
+                                        {(transactionStatus === "done") &&
+                                            <span><i className="fas fa-check"></i> Done</span>
+                                        }
+                                    </Button>
+                                </>
                             }
                         </div>
 
@@ -134,86 +134,102 @@ function NewTransaction(props) {
 
 function TransactionList(props) {
 
-    const {Project} = props;
+    const { Project } = props;
 
-    const [ transactionList, setTransactionList ] = useState([]);
-    const [ refreshTransactionList, setRefreshTransactionList ] = useState(false);
+    const [transactionList, setTransactionList] = useState([]);
+    const [refreshTransactionList, setRefreshTransactionList] = useState(false);
 
     useEffect(() => {
-        console.log(props.Project.obj);
         KickInvest.getInstance().listTransferList(props.Project.obj).then((e) => {
             console.log(e);
             setTransactionList(e);
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [refreshTransactionList]);
 
     const TransactionEntry = (props) => {
 
-        const [ refreshStatus, setRefreshStatus ] = useState(false);
-        const [ removeStatus, setRemoveStatus ] = useState(false);
+        const [refreshStatus, setRefreshStatus] = useState(false);
+        const [removeStatus, setRemoveStatus] = useState(false);
+        const [checkVoteError, setCheckVoteError] = useState(false);
 
         const refreshOnClick = (e) => {
             setRefreshStatus(true);
             KickInvest.getInstance().checkVotes(props.Transaction.obj)
-            .then((newStatus) => {
-                console.log(newStatus);
+                .then((newStatus) => {
+                    console.log(newStatus);
 
-                // Stop animation after ~2 sec
-                setTimeout(() => {
+                    // Stop animation after ~2 sec
+                    setTimeout(() => {
+                        setRefreshStatus(false);
+                    }, 2000);
+
+                    if (newStatus !== "0") {
+                        setRefreshTransactionList(!refreshTransactionList);
+                    }
+                    else {
+                        setCheckVoteError(true);
+                        setRefreshStatus(false);
+                        setTimeout(() => {
+                            setCheckVoteError(false);
+                        }, 2000);
+                    }
+                })
+                .catch((e) => {
+                    console.log("bad");
                     setRefreshStatus(false);
-                }, 2000);
 
-                if(newStatus != "0") {
-                    setRefreshTransactionList(!refreshTransactionList);
-                }
-            })
-            .catch((e) => {
-                console.log("bad");
-                setRefreshStatus(false);
-
-            })
+                })
         };
-    
+
         const deleteOnClick = (e) => {
             setRemoveStatus(true);
             KickInvest.getInstance().removeTransfer(props.Transaction.obj)
-            .then((e) => {
-                console.log("Removed!");
-                setTimeout(() => {
+                .then((e) => {
+                    console.log("Removed!");
+                    setTimeout(() => {
+                        setRemoveStatus(false);
+                        setRefreshTransactionList(!refreshTransactionList);
+                    }, 1000);
+                })
+                .catch((e) => {
                     setRemoveStatus(false);
-                    setRefreshTransactionList(!refreshTransactionList);
-                }, 1000);
-            })
-            .catch((e) => {
-                setRemoveStatus(false);
-                console.log("Error!");
-            });
+                    console.log("Error!");
+                });
         };
 
         return (
             <div className={`list-element ${(props.Transaction.status)}`}>
                 <div className="my-transfer-address">
-                    {KickInvestUtil.ethereumConverter(props.Transaction.value)} <i className="fas fa-share"></i> {props.Transaction.recipient} | {props.Transaction.reason}<br/>
+                    {KickInvestUtil.ethereumConverter(props.Transaction.value)} <i className="fas fa-share"></i> {props.Transaction.recipient} | {props.Transaction.reason}<br />
                 </div>
                 <div className="my-transfer-votes">
-                    <span style={{color: "#28a745"}}>
+                    <span style={{ color: "#28a745" }}>
                         {Math.round(parseInt(props.Transaction.ayeVotes) / parseInt(Project.investors) * 100)}% <i className="fas fa-check"></i>
                     </span>
                     /
-                    <span style={{color: "#dc3545"}}>
+                    <span style={{ color: "#dc3545" }}>
                         {Math.round(parseInt(props.Transaction.nayVotes) / parseInt(Project.investors) * 100)}% <i className="fas fa-times"></i>
                     </span>
                 </div>
-                {(props.Transaction.status == "active") &&
+                {(props.Transaction.status === "active") &&
                     <div className="my-transfer-controls">
-                        <span onClick={refreshOnClick} className={`check-votes${refreshStatus ? " loading" : ""}`}><i className="fas fa-sync"></i></span>
+                        {checkVoteError ?
+                            <>
+                                <span className="check-vote-error"><i className="fas fa-exclamation-triangle"></i></span>
+                            </>
+                            :
+                            <>
+                                <span onClick={refreshOnClick} className={`check-votes${refreshStatus ? " loading" : ""}`}><i className="fas fa-sync"></i></span>
+                            </>
+                        }
                         <span onClick={deleteOnClick} className={`remove${removeStatus ? " loading" : ""}`}><i className="fas fa-trash-alt"></i></span>
                     </div>
                 }
-                {(props.Transaction.status == "resolved") &&
+                {(props.Transaction.status === "resolved") &&
                     <div className="my-transfer-controls status"><i className="far fa-check-circle"></i></div>
                 }
-                {(props.Transaction.status == "rejected") &&
+                {(props.Transaction.status === "rejected") &&
                     <div className="my-transfer-controls status"><i className="far fa-times-circle"></i></div>
                 }
             </div>
@@ -227,7 +243,7 @@ function TransactionList(props) {
                 {transactionList.map((e, k) => {
                     console.log(e);
                     return (
-                        <TransactionEntry Transaction={e}/>
+                        <TransactionEntry key={k} Transaction={e} />
                     );
                 })}
             </div>
@@ -237,7 +253,7 @@ function TransactionList(props) {
 
 function MyProjects() {
 
-    const [ personalProjects, setPersonalProjects ] = useState([]);
+    const [personalProjects, setPersonalProjects] = useState([]);
 
     useEffect(() => {
         KickInvest.getInstance().listPersonalProjects().then((list) => {
@@ -245,7 +261,7 @@ function MyProjects() {
         })
     }, []);
 
-    if(personalProjects.length == 0) {
+    if (personalProjects.length === 0) {
 
         return (
             <div className="nothing-container">
@@ -266,9 +282,9 @@ function MyProjects() {
                 <Col sm={3} id="myprojects-left">
                     <Nav variant="pills" className="flex-column">
                         {personalProjects.map((e, k) => {
-                            return(
+                            return (
                                 <Nav.Item>
-                                    <Nav.Link eventKey={e.address}>{e.name}</Nav.Link>
+                                    <Nav.Link key={k} eventKey={e.address}>{e.name}</Nav.Link>
                                 </Nav.Item>
                             );
                         })}
@@ -278,7 +294,7 @@ function MyProjects() {
                     <Tab.Content>
                         {personalProjects.map((e, k) => {
                             return (
-                                <Tab.Pane eventKey={e.address}>
+                                <Tab.Pane key={k} eventKey={e.address}>
                                     <Tabs fill defaultActiveKey="proj-info" id="myproject-tabs">
                                         <Tab eventKey="proj-info" title="Project info">
                                             <Form>
@@ -334,7 +350,7 @@ function MyProjects() {
                                             </Form>
                                         </Tab>
                                         <Tab eventKey="proj-transfers" title="Transfers">
-                                            <TransactionList Project={e}/>
+                                            <TransactionList Project={e} />
                                         </Tab>
                                     </Tabs>
                                 </Tab.Pane>
@@ -344,7 +360,7 @@ function MyProjects() {
                 </Col>
             </Row>
         </Tab.Container>
-        );
+    );
 }
 
 export default MyProjects;

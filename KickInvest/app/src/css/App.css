@@ -763,8 +763,12 @@ header nav ul li:nth-child(3) a:hover {
 .my-transfer-controls .remove:hover i {
   background-color: #dc3545;
   color: #fff;
-
 }
+
+.my-transfer-controls .check-vote-error i {
+  background-color: red;
+}
+
 .my-transfer-controls .remove.loading i {
   animation: jump .25s linear alternate infinite;
 }

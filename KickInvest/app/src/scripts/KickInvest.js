@@ -1,5 +1,5 @@
 import { EthFactory } from './Contracts';
-import {EthDriver } from './EthDriver';
+import { EthDriver } from './EthDriver';
 import Web3 from 'web3';
 
 const crypto = require("crypto");
@@ -7,25 +7,25 @@ const crypto = require("crypto");
 var fs;
 
 if (window !== undefined && window.require !== undefined) {
-  console.log("[*] [KickInvest] App is running inside an electron application...");
-  fs = window.require('fs');
+    console.log("[*] [KickInvest] App is running inside an electron application...");
+    fs = window.require('fs');
 } else {
-  fs = null;
+    fs = null;
 }
 
 // https://medium.com/@anned20/encrypting-files-with-nodejs-a54a0736a50a
 const CryptoHelper = {
     defaultAlg: 'aes-256-ctr',
 
-    encrypt: function(key, data, alg = this.defaultAlg) {
+    encrypt: function (key, data, alg = this.defaultAlg) {
         const salt = crypto.randomBytes(16);
         const cipher = crypto.createCipheriv(alg, key, salt);
         return Buffer.concat([salt, cipher.update(data), cipher.final()]);
     },
 
-    decrypt: function(key, data, alg = this.defaultAlg) {
+    decrypt: function (key, data, alg = this.defaultAlg) {
         const salt = data.slice(0, 16);
-        
+
         data = data.slice(16);
 
         const decipher = crypto.createDecipheriv(alg, key, salt);
@@ -33,9 +33,8 @@ const CryptoHelper = {
         return Buffer.concat([decipher.update(data), decipher.final()]);
     },
 
-    hash: function(data, alg = 'sha256', times = 13) {
-        for(var i = 0; i < times; i++)
-        {
+    hash: function (data, alg = 'sha256', times = 13) {
+        for (var i = 0; i < times; i++) {
             data = crypto.createHash(alg).update(data).digest('hex');
         }
         return data;
@@ -53,30 +52,30 @@ export default class KickInvest {
         this.nextProjectListUpdate = 0;
         this.kickInvestAccount = null;
 
-        if(cfgPath) {
+        if (cfgPath) {
             this.loadConfig(cfgPath);
         }
     }
 
     static getInstance() {
-        if(KickInvest._instance == null) {
+        if (KickInvest._instance == null) {
             KickInvest._instance = new KickInvest();
         }
         return KickInvest._instance;
     }
 
     validateConfig(cfg) {
-        if(!cfg.hasOwnProperty('address'))
-            return false;
-        
-        if(!cfg.hasOwnProperty('governorAddress')) 
+        if (!cfg.hasOwnProperty('address'))
             return false;
 
-        if(!cfg.hasOwnProperty('abi'))
+        if (!cfg.hasOwnProperty('governorAddress'))
             return false;
-        
+
+        if (!cfg.hasOwnProperty('abi'))
+            return false;
+
         return true;
-        
+
     }
 
     loadAbis(abiObject) {
@@ -95,8 +94,8 @@ export default class KickInvest {
 
     readConfig(path) {
         const cfgJson = JSON.parse(fs.readFileSync(path));
-        if(!this.validateConfig(cfgJson)) {
-            throw "Invalid config file provided.";
+        if (!this.validateConfig(cfgJson)) {
+            throw new Error("Invalid config file provided.");
         }
 
         return {
@@ -160,21 +159,20 @@ export default class KickInvest {
             savedData = JSON.parse(CryptoHelper.decrypt(key, encryptedWallet).toString());
         }
         catch (e) {
-            throw "Wrong password";
+            throw new Error("Wrong password");
         }
 
         this.login(savedData.wallet.privateKey);
     }
 
     async registerAccount(privateKey, name) {
-        // TODO: Check if account already exists
-        try{
+        try {
             this.ethDriver.privatekeyToAccount(privateKey);
         }
-        catch(e) {
-            throw "Invalid private key";
+        catch (e) {
+            throw new Error("Invalid private key");
         }
-        
+
         this.ethDriver.setCurrentAccount(privateKey, name);
 
         const accountAddress = await this.governor.createAccount(name);
@@ -187,15 +185,15 @@ export default class KickInvest {
         try {
             account = this.ethDriver.privatekeyToAccount(privateKey);
         }
-        catch(e) {
-            throw "Invalid private key";
+        catch (e) {
+            throw new Error("Invalid private key");
         }
         const addr = await this.governor.getAccount(account);
 
         console.log(addr);
-        if(addr == "0x0000000000000000000000000000000000000000") {
+        if (addr === "0x0000000000000000000000000000000000000000") {
             console.log("No registered account found for private key!");
-            throw "No account found";
+            throw new Error("No account found");
         }
         else {
             console.log("Found account for " + account + ": " + addr);
@@ -209,11 +207,11 @@ export default class KickInvest {
 
     // Project control
     async listProjects(update = false) {
-        
-        if(!update && this.projectContracts.length > 0 && this.nextProjectListUpdate > new Date().getTime()) {
+
+        if (!update && this.projectContracts.length > 0 && this.nextProjectListUpdate > new Date().getTime()) {
             console.log("Getting cached results...");
             return this.projectContracts;
-        } 
+        }
 
         console.log("Fetching list of projects...");
         this.projectContracts = [];
@@ -233,7 +231,7 @@ export default class KickInvest {
                 investors: await projectObject.getNumberOfInvestors(),
                 account: await projectObject.getProjectAccount()
             });
-          }));
+        }));
         return this.projectContracts;
     }
 
@@ -242,10 +240,9 @@ export default class KickInvest {
         const investedProjAddressList = await this.getInvestedProjects();
         let investedProjList = [];
 
-        for(var i = 0; i < allProjects.length; ++i)
-        {    
+        for (var i = 0; i < allProjects.length; ++i) {
             let obj = allProjects[i];
-            if(investedProjAddressList.includes(obj.address)) {
+            if (investedProjAddressList.includes(obj.address)) {
                 obj.investment = await this.kickInvestAccount.getInvestedSum(obj.address);
                 investedProjList.push(obj);
             }
@@ -258,9 +255,9 @@ export default class KickInvest {
         const personalProjAddresssList = await this.getPersonalProjects();
         let personalProjList = []
 
-        for(var i = 0; i < allProjects.length; ++i) {
+        for (var i = 0; i < allProjects.length; ++i) {
             let obj = allProjects[i];
-            if(personalProjAddresssList.includes(obj.address)) {
+            if (personalProjAddresssList.includes(obj.address)) {
                 personalProjList.push(obj);
             }
         }
@@ -277,19 +274,19 @@ export default class KickInvest {
     }
 
     async getInvestedProjects() {
-        if(this.kickInvestAccount)
+        if (this.kickInvestAccount)
             return this.kickInvestAccount.getInvestedProjects();
         return [];
     }
 
     async getPersonalProjects() {
-        if(this.kickInvestAccount)
+        if (this.kickInvestAccount)
             return this.kickInvestAccount.getPersonalProjects();
         return [];
     }
 
     async investProject(project, sum) {
-        if(!this.kickInvestAccount) {
+        if (!this.kickInvestAccount) {
             return;
         }
 
@@ -297,13 +294,13 @@ export default class KickInvest {
     }
 
     async listTransferList(project) {
-        if(!this.kickInvestAccount) {
+        if (!this.kickInvestAccount) {
             return [];
         }
 
         const addressList = await project.getTransfers();
         let transferList = []
-        for(var i = 0; i < addressList.length; ++i) {
+        for (var i = 0; i < addressList.length; ++i) {
             let transfer = EthFactory.Transfer.at(addressList[i]);
             let transferInfo = {
                 obj: transfer,
@@ -316,7 +313,7 @@ export default class KickInvest {
                 castVote: await transfer.getVote(this.kickInvestAccount.getAddress())
             };
 
-            switch(await transfer.getTransferResult()) {
+            switch (await transfer.getTransferResult()) {
                 case "0":
                     transferInfo.status = "active";
                     break;
@@ -328,8 +325,12 @@ export default class KickInvest {
                 case "2":
                     transferInfo.status = "rejected";
                     break;
+
+                default:
+                    break;
+
             }
-            
+
 
             transferList.push(transferInfo);
         }
@@ -374,7 +375,7 @@ export default class KickInvest {
             console.log("Wallet: " + wallet);
             wallet.forEach((account) => {
                 this.getRemoteAccount(account.account).then((remoteAccount) => {
-                    console.log("Name:"  + account.name + " | Account: " + account.account + " | Remote account: " + remoteAccount);
+                    console.log("Name:" + account.name + " | Account: " + account.account + " | Remote account: " + remoteAccount);
                     this.kickInvestAccounts[account.account] = remoteAccount;
                 });
             })
@@ -385,13 +386,13 @@ export default class KickInvest {
 export class KickInvestUtil {
     static ethereumConverter(ammount) {
         let unit = 'wei';
-        if(ammount > 100000) {
-          unit = 'gwei';
-          ammount /= 1000000000;
-          if(ammount > 100000) {
-            unit = 'Ξ';
+        if (ammount > 100000) {
+            unit = 'gwei';
             ammount /= 1000000000;
-          }
+            if (ammount > 100000) {
+                unit = 'Ξ';
+                ammount /= 1000000000;
+            }
         }
         return `${ammount} ${unit}`;
     }

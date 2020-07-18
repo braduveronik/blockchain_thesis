@@ -1,5 +1,3 @@
-const fs = require('fs');
-
 
 class ContractBase {
     constructor(ethd, contract) {
@@ -9,8 +7,8 @@ class ContractBase {
     }
 
     waitForEvent(eventName, cb) {
-        let eventListener = this.contract.events[eventName]((err, subscription)  => {
-            if(!err) {
+        let eventListener = this.contract.events[eventName]((err, subscription) => {
+            if (!err) {
                 cb(err, subscription);
                 eventListener.unsubscribe();
             }
@@ -20,14 +18,14 @@ class ContractBase {
     subscribeToEvent(eventName, cb) {
         this.unsubscribeToEvent(eventName);
         this.eventListener[eventName] = this.contract.events[eventName]((err, subscription) => {
-            if(!err) {
+            if (!err) {
                 cb(err, subscription);
             }
         });
     }
 
     unsubscribeToEvent(eventName) {
-        if(typeof this.eventListener[eventName] !== 'undefined') {
+        if (typeof this.eventListener[eventName] !== 'undefined') {
             this.eventListener[eventName].unsubscribe();
         }
     }
@@ -37,13 +35,13 @@ class ContractBase {
     }
 }
 
-class Governor extends ContractBase{
+class Governor extends ContractBase {
     async getOwner() {
         return this.contract.methods.owner().call();
     }
 
     getAccount(address = null) {
-        if(!address) {
+        if (!address) {
             address = this.ethd.getCurrentAccount();
         }
         return this.contract.methods.getAccount(address).call();
@@ -57,10 +55,10 @@ class Governor extends ContractBase{
         // TODO: Caching later
         return new Promise((resolve, reject) => {
             this.waitForEvent('NewProject', (err, subscription) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
-                if(subscription.returnValues.creator === this.ethd.getCurrentAccount().address) {
+                if (subscription.returnValues.creator === this.ethd.getCurrentAccount().address) {
                     resolve(subscription.returnValues.projectAddress);
                 }
             });
@@ -68,7 +66,7 @@ class Governor extends ContractBase{
             try {
                 this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.createProject(...args));
             }
-            catch(exc) {
+            catch (exc) {
                 reject(exc);
             }
         });
@@ -77,10 +75,10 @@ class Governor extends ContractBase{
     async createAccount(name) {
         return new Promise(async (resolve, reject) => {
             this.waitForEvent('NewAccount', (err, subscription) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
-                if(subscription.returnValues.creator === this.ethd.getCurrentAccount().address) {
+                if (subscription.returnValues.creator === this.ethd.getCurrentAccount().address) {
                     resolve(subscription.returnValues.accountAddress);
                 }
             });
@@ -88,7 +86,7 @@ class Governor extends ContractBase{
             try {
                 await this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.createAccount(name));
             }
-            catch(exc) {
+            catch (exc) {
                 reject(exc);
             }
         });
@@ -99,14 +97,14 @@ class Account extends ContractBase {
     getName() {
         return this.contract.methods.getName().call();
     }
-    
+
     async invest(project, value) {
         return new Promise(async (resolve, reject) => {
             project.waitForEvent('NewInvestor', (err, subscription) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
-                if(subscription.returnValues.investor === this.getAddress()) {
+                if (subscription.returnValues.investor === this.getAddress()) {
                     resolve(subscription.returnValues.investor);
                 }
             });
@@ -114,7 +112,7 @@ class Account extends ContractBase {
             try {
                 await this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.invest(project.getAddress()), value, 1500000);
             }
-            catch(exc) {
+            catch (exc) {
                 reject(exc);
             }
         });
@@ -123,17 +121,17 @@ class Account extends ContractBase {
     async createProject(...args) {
         return new Promise(async (resolve, reject) => {
             this.waitForEvent('NewProject', (err, subscription) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
-                if(subscription.returnValues.creator === this.contract._address) {
+                if (subscription.returnValues.creator === this.contract._address) {
                     resolve(subscription.returnValues.projectAddress);
                 }
             });
             try {
                 await this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.createProject(...args));
             }
-            catch(exc) {
+            catch (exc) {
                 reject(exc);
             }
         });
@@ -142,7 +140,7 @@ class Account extends ContractBase {
     async initTransfer(project, recipient, reason, value) {
         return new Promise(async (resolve, reject) => {
             project.waitForEvent('NewTransfer', (err, subscription) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
                 resolve(subscription.returnValues.transferAddress);
@@ -151,7 +149,7 @@ class Account extends ContractBase {
             try {
                 await this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.initTransfer(project.getAddress(), recipient, reason, value));
             }
-            catch(exc) {
+            catch (exc) {
                 reject(exc);
             }
         });
@@ -160,7 +158,7 @@ class Account extends ContractBase {
     async castAye(transfer) {
         return new Promise(async (resolve, reject) => {
             transfer.waitForEvent('NewVote', (err, subscription) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
                 resolve(subscription.returnValues.caster);
@@ -168,7 +166,7 @@ class Account extends ContractBase {
             try {
                 await this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.voteAye(transfer.getAddress()));
             }
-            catch(exc) {
+            catch (exc) {
                 reject(exc);
             }
         });
@@ -177,7 +175,7 @@ class Account extends ContractBase {
     async castNay(transfer) {
         return new Promise(async (resolve, reject) => {
             transfer.waitForEvent('NewVote', (err, subscription) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
                 resolve(subscription.returnValues.caster);
@@ -185,7 +183,7 @@ class Account extends ContractBase {
             try {
                 await this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.voteNay(transfer.getAddress()));
             }
-            catch(exc) {
+            catch (exc) {
                 reject(exc);
             }
         });
@@ -194,7 +192,7 @@ class Account extends ContractBase {
     async removeVote(transfer) {
         return new Promise(async (resolve, reject) => {
             transfer.waitForEvent('NewVote', (err, subscription) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
                 resolve(subscription.returnValues.caster);
@@ -202,7 +200,7 @@ class Account extends ContractBase {
             try {
                 await this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.removeVote(transfer.getAddress()));
             }
-            catch(exc) {
+            catch (exc) {
                 reject(exc);
             }
         });
@@ -211,7 +209,7 @@ class Account extends ContractBase {
     async checkVotes(transfer) {
         return new Promise(async (resolve, reject) => {
             transfer.waitForEvent('TransferStatus', (err, subscription) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
                 resolve(subscription.returnValues.result);
@@ -219,7 +217,7 @@ class Account extends ContractBase {
             try {
                 await this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.checkVotes(transfer.getAddress()));
             }
-            catch(exc) {
+            catch (exc) {
                 reject(exc);
             }
         });
@@ -228,7 +226,7 @@ class Account extends ContractBase {
     async removeTransfer(transfer) {
         return new Promise(async (resolve, reject) => {
             transfer.waitForEvent('TransferStatus', (err, subscription) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
                 resolve(subscription.returnValues.result);
@@ -236,7 +234,7 @@ class Account extends ContractBase {
             try {
                 await this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.removeTransfer(transfer.getAddress()));
             }
-            catch(exc) {
+            catch (exc) {
                 reject(exc);
             }
         });
@@ -291,10 +289,10 @@ class Project extends ContractBase {
     investAnnonymous(value) {
         return new Promise((resolve, reject) => {
             this.waitForEvent('NewInvestor', (err, subscription) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
-                if(subscription.returnValues.creator === this.ethd.getCurrentAccount().address) {
+                if (subscription.returnValues.creator === this.ethd.getCurrentAccount().address) {
                     resolve(subscription.returnValues.projectAddress);
                 }
             });
@@ -302,7 +300,7 @@ class Project extends ContractBase {
             try {
                 this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.investAnnonymous(), value);
             }
-            catch(exc) {
+            catch (exc) {
                 reject(exc);
             }
         });
@@ -311,15 +309,15 @@ class Project extends ContractBase {
     initTransfer(recipient, reason, value) {
         return new Promise((resolve, reject) => {
             this.getOwner().then((ownerAddress) => {
-                if(this.ethd.getCurrentAccount() !== ownerAddress) {
+                if (this.ethd.getCurrentAccount() !== ownerAddress) {
                     reject("Only owner can call this function.");
                 }
 
                 this.waitForEvent('NewTransfer', (err, subscription) => {
-                    if(err) {
+                    if (err) {
                         reject(err);
                     }
-                    if(subscription.returnValues.investor === this.ethd.getCurrentAccount().address) {
+                    if (subscription.returnValues.investor === this.ethd.getCurrentAccount().address) {
                         resolve(subscription.returnValues.transferAddress);
                     }
                 });
@@ -327,7 +325,7 @@ class Project extends ContractBase {
                 try {
                     this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.initTransfer(recipient, reason, value));
                 }
-                catch(exc) {
+                catch (exc) {
                     reject(exc);
                 }
             });
@@ -357,7 +355,7 @@ class Transfer extends ContractBase {
     }
 
     getVotes(address = null) {
-        if(!address) {
+        if (!address) {
             address = this.ethd.getCurrentAccount();
         }
         return this.contract.methods.votes(address).call();
@@ -386,10 +384,10 @@ class Transfer extends ContractBase {
     aye() {
         return new Promise((resolve, reject) => {
             this.waitForEvent('NewVote', (err, subscription) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
-                if(subscription.returnValues.caster === this.ethd.getCurrentAccount().address) {
+                if (subscription.returnValues.caster === this.ethd.getCurrentAccount().address) {
                     resolve(true);
                 }
             });
@@ -397,7 +395,7 @@ class Transfer extends ContractBase {
             try {
                 this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.aye());
             }
-            catch(exc) {
+            catch (exc) {
                 reject(exc);
             }
         });
@@ -406,10 +404,10 @@ class Transfer extends ContractBase {
     nay() {
         return new Promise((resolve, reject) => {
             this.waitForEvent('NewVote', (err, subscription) => {
-                if(err) {
+                if (err) {
                     reject(err);
                 }
-                if(subscription.returnValues.caster === this.ethd.getCurrentAccount().address) {
+                if (subscription.returnValues.caster === this.ethd.getCurrentAccount().address) {
                     resolve(true);
                 }
             });
@@ -417,7 +415,7 @@ class Transfer extends ContractBase {
             try {
                 this.ethd.signAndCallMethod(this.getAddress(), this.contract.methods.nay());
             }
-            catch(exc) {
+            catch (exc) {
                 reject(exc);
             }
         });
@@ -433,43 +431,43 @@ export let EthFactory = {
         Transfer: null
     },
 
-    setDriver: function(ethd) {
+    setDriver: function (ethd) {
         this.ethd = ethd;
     },
 
-    setAbi: function(contract, abi) {
-        if(this.abi.hasOwnProperty(contract)) {
+    setAbi: function (contract, abi) {
+        if (this.abi.hasOwnProperty(contract)) {
             this.abi[contract] = abi;
         }
     },
 
-    getContract: function(type, address) {
+    getContract: function (type, address) {
         return new EthFactory.ethd.w3.eth.Contract(type, address);
     },
 
     Governor: {
-        at: function(address) {
+        at: function (address) {
             const projectContract = EthFactory.getContract(EthFactory.abi.Governor, address);
             return new Governor(EthFactory.ethd, projectContract);
         }
     },
 
     Account: {
-        at: function(address){
+        at: function (address) {
             const accountContract = EthFactory.getContract(EthFactory.abi.Account, address);
             return new Account(EthFactory.ethd, accountContract);
-        }  
+        }
     },
 
     Project: {
-        at: function(address) {
+        at: function (address) {
             const projectContract = EthFactory.getContract(EthFactory.abi.Project, address);
             return new Project(EthFactory.ethd, projectContract);
         }
     },
 
     Transfer: {
-        at: function(address) {
+        at: function (address) {
             const transferContract = EthFactory.getContract(EthFactory.abi.Transfer, address);
             return new Transfer(EthFactory.ethd, transferContract);
         }

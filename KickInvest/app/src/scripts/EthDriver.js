@@ -1,12 +1,4 @@
 const Web3 = require("web3");
-let fs;
-
-if (window !== undefined && window.require !== undefined) {
-  console.log("[*] [EthDriver] App is running inside an electron application...");
-  fs = window.require('fs');
-} else {
-  fs = null;
-}
 
 export class EthDriver {
     constructor(url) {
@@ -29,7 +21,7 @@ export class EthDriver {
 
     async setCurrentAccount(privateKey, name) {
         const acc = this.w3.eth.accounts.privateKeyToAccount(privateKey);
-        
+
         acc.name = name;
         this.currentAccount = acc;
 
@@ -50,12 +42,11 @@ export class EthDriver {
     async signAndCallMethod(contractAddress, contractFunction, value = 0, gasDelta = 0) {
         const functionAbi = contractFunction.encodeABI();
 
-        let estimatedGas;
         let nonce;
         const w3 = this.w3;
 
         const account = this.getCurrentAccount().address;
-        let  gasAmount = await contractFunction.estimateGas({from: account});
+        let gasAmount = await contractFunction.estimateGas({ from: account });
 
         gasAmount += Math.ceil(gasAmount * 0.15);
         // estimatedGas = gasAmount.toString(16);
@@ -81,7 +72,7 @@ export class EthDriver {
         try {
             const res = await w3.eth.sendSignedTransaction(serializedTx);
             return res;
-        } catch(e) {
+        } catch (e) {
             throw e;
         }
 

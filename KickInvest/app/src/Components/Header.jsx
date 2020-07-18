@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
-import {Tooltip, OverlayTrigger, Modal, Form, Button} from "react-bootstrap";
+import { NavLink } from "react-router-dom";
+import { Tooltip, OverlayTrigger, Modal, Form, Button } from "react-bootstrap";
 import { useEffect } from "react";
-import KickInvest, {KickInvestUtil} from "../scripts/KickInvest";
+import KickInvest, { KickInvestUtil } from "../scripts/KickInvest";
 
 const { dialog, getCurrentWindow, clipboard } = window.require('electron').remote;
 
@@ -80,11 +80,11 @@ class WinWindowButtons extends React.Component {
   }
 
   render() {
-    if (remote.process.platform == "darwin" || !remote) {
+    if (remote.process.platform === "darwin" || !remote) {
       return <div id="window-buttons-replacement"></div>;
     }
 
-    if (remote.process.platform == "win32") {
+    if (remote.process.platform === "win32") {
       return (
         <div id="window-buttons-win32">
           <div className="minimize-window" onClick={this.MinimizeWindow}>
@@ -113,7 +113,7 @@ class WinWindowButtons extends React.Component {
 
 class MacWindowButtons extends React.Component {
   render() {
-    if (remote.process.platform == "darwin") {
+    if (remote.process.platform === "darwin") {
       // "darwin"
       return <div id="window-buttons-darwin"></div>;
     } else {
@@ -130,7 +130,7 @@ class Navbar extends React.Component {
         // { name: "home", url: "/", icon: "fas fa-home" },
         { name: "browse", url: "/browse", icon: "fas fa-lightbulb" }, // browse projects
         { name: "investments", url: "/investments", icon: "fas fa-chart-line" }, // investments
-        {name: "my projects", url: "/myprojects", icon: "fas fa-project-diagram"},
+        { name: "my projects", url: "/myprojects", icon: "fas fa-project-diagram" },
         // { name: "settings", url: "/settings", icon: "fas fa-cogs" }, // settings
       ],
     };
@@ -148,8 +148,8 @@ class Navbar extends React.Component {
       <div>
         <nav>
           <ul>
-            {this.state.menuLinks.map((e) => (
-              <li key={e.name}>
+            {this.state.menuLinks.map((e, k) => (
+              <li key={k}>
                 <NavLink to={e.url} activeClassName="navbar-active" exact>
                   {this.getIcon(e)}
                   {e.name}
@@ -165,43 +165,43 @@ class Navbar extends React.Component {
 
 function ExportButton(props) {
 
-  const [ exportDialog, setExportDialog ] = useState(false);
-  const [ password, setPassword ] = useState('');
+  const [exportDialog, setExportDialog] = useState(false);
+  const [password, setPassword] = useState('');
 
   const passwordHandleChange = (e) => {
-      setPassword(e.target.value);
+    setPassword(e.target.value);
   };
 
   const handleSave = () => {
-      const savePath = dialog.showSaveDialogSync({
-          defaultPath: "wallet.dat"
-      });
+    const savePath = dialog.showSaveDialogSync({
+      defaultPath: "wallet.dat"
+    });
 
-      if(typeof savePath !== "undefined" && password.length > 0) {
-          console.log("Saving wallet to: " + savePath);
-          KickInvest.getInstance().saveWallet(savePath, password);
-      }
+    if (typeof savePath !== "undefined" && password.length > 0) {
+      console.log("Saving wallet to: " + savePath);
+      KickInvest.getInstance().saveWallet(savePath, password);
+    }
 
-      setExportDialog(false);
+    setExportDialog(false);
   };
 
   return (
-      <>
-          <Modal className="export-dialog" show={exportDialog} onHide={() => setExportDialog(false)} centered>
-              <Form.Group>
-                  <Form.Control type="password" placeholder="Enter password" value={password} onChange={passwordHandleChange} required/>
-              </Form.Group>
-              <Button variant="success" onClick={() => handleSave()}><span><i className="far fa-save"></i> Save</span></Button>
-          </Modal>
-          <div className="menu-btn export" onClick={() => setExportDialog(true)}><i className="fas fa-external-link-alt"></i> Export wallet</div>
-      </>
+    <>
+      <Modal className="export-dialog" show={exportDialog} onHide={() => setExportDialog(false)} centered>
+        <Form.Group>
+          <Form.Control type="password" placeholder="Enter password" value={password} onChange={passwordHandleChange} required />
+        </Form.Group>
+        <Button variant="success" onClick={() => handleSave()}><span><i className="far fa-save"></i> Save</span></Button>
+      </Modal>
+      <div className="menu-btn export" onClick={() => setExportDialog(true)}><i className="fas fa-external-link-alt"></i> Export wallet</div>
+    </>
   );
 }
 
 function BubbleMenu() {
 
-  const [ accountInfo, setAccountInfo ] = useState({});
-  const [ doneCopy, setDoneCopy ] = useState(false);
+  const [accountInfo, setAccountInfo] = useState({});
+  const [doneCopy, setDoneCopy] = useState(false);
 
   useEffect(() => {
     KickInvest.getInstance().getCurrentAccountInfo().then((info) => {
@@ -251,7 +251,7 @@ function BubbleMenu() {
         <div className={`address${doneCopy ? " copied" : ""}`} onClick={copyAddressAction}><i className="fab fa-ethereum"></i>{accountInfo.address}</div>
       </div>
       <div className="menu-buttons">
-        <ExportButton/>
+        <ExportButton />
         <NavLink to="/browse">
           <div className="menu-btn logout" onClick={logoutAction}><i className="fas fa-sign-out-alt"></i> Sign out</div>
         </NavLink>
@@ -276,7 +276,7 @@ function UserBubble() {
   return (
     <div id="user-bubble">
       <i onClick={handleClick} className="fas fa-key"></i>
-      { showResults ? <BubbleMenu/> : null}
+      {showResults ? <BubbleMenu /> : null}
     </div>
   );
 }
@@ -287,7 +287,7 @@ function Header(props) {
       <header className="grid">
         <MacWindowButtons />
         <div className="menu-bar">
-            <Navbar /> 
+          <Navbar />
         </div>
         <div className="middle-bar"></div>
         <div className="profile">

@@ -2,8 +2,6 @@ const Web3 = require("web3");
 const fs = require("fs");
 const crypto = require("crypto");
 
-
-// https://medium.com/@anned20/encrypting-files-with-nodejs-a54a0736a50a
 const CryptoHelper = {
     defaultAlg: 'aes-256-ctr',
 
